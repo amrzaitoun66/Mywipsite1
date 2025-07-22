@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>مبوبة إعلانية</title>
+  <style>
+    body {
+      font-family: Arial;
+      direction: rtl;
+      text-align: right;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    input, textarea, select, button {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .filter-buttons {
+      margin-bottom: 20px;
+    }
+    .filter-buttons button {
+      margin-left: 5px;
+      padding: 8px 15px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .filter-buttons button.active {
+      background: #27ae60;
+    }
+    .ad {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-right: 5px solid #3498db;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .ad span.category {
+      font-size: 14px;
+      color: #555;
+      background: #ecf0f1;
+      padding: 4px 8px;
+      border-radius: 5px;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+    .ad button {
+      background: red;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📢 مبوبة إعلانية</h1>
+
+  <select id="category">
+    <option value="وظائف">🏢 وظائف</option>
+    <option value="سيارات">🚗 سيارات</option>
+    <option value="عقارات">🏠 عقارات</option>
+  </select>
+
+  <input type="text" id="title" placeholder="عنوان الإعلان">
+  <textarea id="desc" placeholder="وصف الإعلان"></textarea>
+  <button onclick="addAd()">نشر الإعلان</button>
+
+  <div class="filter-buttons">
+    <button onclick="filterAds('الكل')" class="active">📋 الكل</button>
+    <button onclick="filterAds('وظائف')">🏢 وظائف</button>
+    <button onclick="filterAds('سيارات')">🚗 سيارات</button>
+    <button onclick="filterAds('عقارات')">🏠 عقارات</button>
+  </div>
+
+  <div id="adsContainer"></div>
+
+  <script>
+    let ads = JSON.parse(localStorage.getItem("ads")) || [];
+    let currentFilter = "الكل";
+
+    function saveAds() {
+      localStorage.setItem("ads", JSON.stringify(ads));
+    }
+
+    function renderAds() {
+      const container = document.getElementById("adsContainer");
+      container.innerHTML = "";
+      ads.forEach((ad, index) => {
+        if (currentFilter === "الكل" || ad.category === currentFilter) {
+          const adBox = document.createElement("div");
+          adBox.className = "ad";
+          adBox.innerHTML = `
+            <span class="category">${getCategoryIcon(ad.category)} ${ad.category}</span>
+            <h3>${ad.title}</h3>
+            <p>${ad.desc}</p>
+            <button onclick="deleteAd(${index})">حذف</button>
+          `;
+          container.appendChild(adBox);
+        }
+      });
+    }
+
+    function addAd() {
+      const title = document.getElementById("title").value.trim();
+      const desc = document.getElementById("desc").value.trim();
+      const category = document.getElementById("category").value;
+      if (!title || !desc) return alert("من فضلك املأ كل الحقول");
+
+      ads.push({ title, desc, category });
+      saveAds();
+      renderAds();
+      document.getElementById("title").value = "";
+      document.getElementById("desc").value = "";
+    }
+
+    function deleteAd(index) {
+      if (confirm("هل أنت متأكد من حذف هذا الإعلان؟")) {
+        ads.splice(index, 1);
+        saveAds();
+        renderAds();
+      }
+    }
+
+    function filterAds(cat) {
+      currentFilter = cat;
+      renderAds();
+      document.querySelectorAll(".filter-buttons button").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.innerText.includes(cat)) btn.classList.add("active");
+        if (cat === "الكل" && btn.innerText.includes("الكل")) btn.classList.add("active");
+      });
+    }
+
+    function getCategoryIcon(cat) {
+      switch(cat) {
+        case "وظائف": return "🏢";
+        case "سيارات": return "🚗";
+        case "عقارات": return "🏠";
+        default: return "";
+      }
+    }
+
+    renderAds();
+  </script>
+
+</body>
+</html>
